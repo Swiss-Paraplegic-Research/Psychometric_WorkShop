@@ -2,7 +2,7 @@ The folder contains the two slide decks for the first and the second day. A fold
 
 To be ready to start, if you do not have it yet, please, install R and Rstudio ahead of the workshop.
 
-·	link to cran-r (chose your operating system an install)
+·	link to cran-r (chose your operating system and install)
 
 https://cran.r-project.org
 
