@@ -4,14 +4,12 @@ rm(list = ls())
 
 path = "C:/Users/fellinghauer_c/OneDrive - Schweizer Paraplegiker-Gruppe/Dokumente/Documents/Workshop/Psychometric_WorkShop/"
 
-
 #*********************************
 #RM----------
 #The most common Rasch model is the model for dichotomous items.
 
 #load eRm
-
-
+#install.packages("eRm")
 library(eRm)
 
 
@@ -21,7 +19,6 @@ library(eRm)
 
 RM_Data <- eRm::sim.rasch(500, 10, seed = 1234)
 
-
 #run a Rasch model on Data_Dicho
 RM_analysis <- RM(RM_Data)
 print(summary(RM_analysis))
@@ -30,11 +27,12 @@ print(summary(RM_analysis))
 #plot a Person-Item Map and sort the responses by increasing difficulty
 #also sometimes called Wright map
 
-plotPImap(RM_analysis, sorted = TRUE)
+plotPImap(RM_analysis)
 
 ############################################################################3
-#PCM----------------
+#Polytomous Data----------------
 #load the package psych
+#install.packages("psych")
 library("psych")
 
 #here a function to simulate polytomous data
@@ -48,13 +46,13 @@ Data_Poly <- sim.poly.npl(nvar = 10, n = 500, low = -4, high = 4, a = sample(seq
 
 #run a Rating Scale Model with Data_Poly
 
-RSM_Poly <- RSM(Data_Poly)
+RSM_Poly = RSM(Data_Poly)
 summary(RSM_Poly)
 
 #*********************************
 #Partial Credit Model
 
-PCM_Poly <- PCM(Data_Poly)
+PCM_Poly = PCM(Data_Poly)
 summary(PCM_Poly)
 
 
@@ -75,7 +73,7 @@ par(mar = c(2,2,2,1)) #to vary the size of margins
 ThresholdMap(thresholds(RSM_Poly))
 ThresholdMap(thresholds(PCM_Poly))
 
-#graphics.off() #to reset the plotting window
+graphics.off() #to reset the plotting window
 
 
 ##RSM vs. PCM-------------
@@ -110,6 +108,7 @@ Items = c(paste("D1", 1:6, sep = "."),  #Understanding and communicating
 
 
 #load following R-packages
+#install.packages("mirt", "iarm")
 library(mirt)
 library(iarm)
 
@@ -127,7 +126,7 @@ range(dta[, "Score"])
 colnames(dta)
 
 dta = as.data.frame(rbind(dta, 
-      c("", "", "Dummy", rep(0, 32), rep(NA, 8), 128, NA)
+      c("", "", "Dummy", rep(0, 32), rep(NA, 8), 0, NA)
       ))
 
 dta[, Items] = apply(dta[, Items],2, as.numeric)
@@ -167,9 +166,12 @@ IFit_eRm = eRm::itemfit(PP_eRm)
 
 #run a PCM and get item fit with mirt - you can use whatever available.
 
+PCM_mirt = mirt(dta[, Items], 1, itemtype = "Rasch")
+IFit_mirt = mirt::itemfit(PCM_mirt, "infit")
 
-PCM_mirt = mirt()
-IFit_mirt = mirt::it...
+
+cbind(infit_eRm = IFit_eRm$i.infitMSQ,
+infit_mirt = IFit_mirt$infit)
 
 
 #*******************************************************************
@@ -180,6 +182,7 @@ Thr_eRm = thresholds(PCM_eRm)
 Thr_eRm
 
 #Threshold Map (see L.65, L.79)
+par(mar = c(2,2,2,1))
 ThresholdMap(Thr_eRm)
 
 
@@ -196,10 +199,16 @@ graphics.off()
 ###Exercise 2------------
 ####with Package mirt----------------
 
-Thr_mirt = 
+Thr_mirt = coef(PCM_mirt, simplify = TRUE, 
+                IRTpars=TRUE)$items
 
 
 #ThresholdMap 
+par(mar = c(2,2,2,1))
+ThresholdMap(Thr_mirt, RPackage = "mirt")
+
+  
+  
 #Person-Item Map is not directly available in mirt
 #Suggestions - 
 #a) Recycling the person item map syntax to run with thresholds and person parameter from mirt
@@ -209,11 +218,21 @@ plotPImap
 
 library(WrightMap)
 
-PP_mirt = fscores(PCM_mirt, method = "WLE", full.scores = TRUE, full.scores.SE = TRUE)
-wrightMap(, )
+
+PP_mirt = fscores(PCM_mirt, method = "WLE", 
+                  full.scores = TRUE, 
+                  full.scores.SE = TRUE)
+
+wrightMap(PP_mirt[,1], Thr_mirt[,-1])
 
 
 #ICC curves 
+
+for(i in 1:length(Items)){
+  print(empirical_plot(dta[, Items], i, 
+          smooth = TRUE, 
+          main = Items[i]))
+}
 
 
 
@@ -225,15 +244,16 @@ wrightMap(, )
 
 ####with Package eRm-----------------
 
-Theta_eRm = PP_eRm$theta.table
-
 
 #Item Difficulties
 Mean_IP_eRm = mean(Thr_eRm$threshtable$`1`[,1]) #mean location = mean of thresholds
 SD_IP_eRm = sd(as.vector(Thr_eRm$threshtable$`1`[,-1]), na.rm = TRUE) #sd location != sd of thresholds - make sd of thresholds
 Target_IP_eRm = cbind(Mean_IP_eRm, SD_IP_eRm)
 
-#Person Abilities  
+#Person Abilities 
+
+Theta_eRm = PP_eRm$theta.table
+
 Mean_PP_eRm = mean(Theta_eRm[,1], na.rm = TRUE)
 SD_PP_eRm = sd(Theta_eRm[,1], na.rm = TRUE)
 Target_PP_eRm = cbind(Mean_PP_eRm, SD_PP_eRm)
@@ -247,6 +267,8 @@ round(Targeting_eRm, 3)
 
 #Also check the PImap
 
+plotPImap(PCM_eRm)
+
 
 #Person Separation Index
 ?SepRel
@@ -258,27 +280,29 @@ PSI_eRm
 ####with Package mirt-----------
 
 #Item Difficulties
-Mean_IP_mirt =  
-SD_IP_mirt = 
-Target_IP_mirt = 
+Mean_IP_mirt =  mean(Thr_mirt[,-1], na.rm = TRUE)
+SD_IP_mirt = sd(as.vector(Thr_mirt[,-1]), na.rm = TRUE)
+Target_IP_mirt = cbind(Mean_IP_mirt, SD_IP_mirt)
 
-#Person parameter estimates were computed previously
+
+#Compute person parameter estimates
 
 #Person Abilities  
-Mean_PP_mirt = 
-SD_PP_mirt = 
-Target_PP_mirt = 
+Mean_PP_mirt = mean(PP_mirt[,1], na.rm = TRUE)
+SD_PP_mirt = sd(PP_mirt[,1], na.rm = TRUE)
+Target_PP_mirt = cbind(Mean_PP_mirt, SD_PP_mirt)
 
 
-Targeting_mirt = 
+Targeting_mirt = cbind(rbind(Target_IP_mirt, Target_PP_mirt))
+rownames(Targeting_mirt) = c("Difficulty", "Ability")
+colnames(Targeting_mirt) = c("Mean", "SD")
 
 round(Targeting_mirt,3)
 
 #PSI 
-
-PSI_mirt =  
+#!delete
+PSI_mirt =  empirical_rxx(PP_mirt)
 PSI_mirt
-
 
 #*******************************************************************
 #Local Item Dependencies-----------------
@@ -304,10 +328,15 @@ corrplot(LID_eRm) #displays graphically the correlation matrix
 
 #LID Plot - in form of graphical model
 source(paste0(path, "Exercises/LID_Graph.r") )
-LID_Graph(LID_eRm, cut = 0.2, print.out = TRUE, cex = 0.7, 
-          vertex.size = 15, vertex.label.dist = 0, vertex.color = "lightpink")
+par(mar=c(0,0,0,0))
+LID_Graph(LID_eRm, cut = 0.2, 
+          print.out = TRUE, cex = 0.7, 
+          vertex.size = 20, 
+          vertex.label.dist = 0, 
+          vertex.color = "violet")
 
 #type colors() for more colors
+colors()
 
 #using mean corr + 0.2 as cut-off
 Mean_LID_eRm = mean(cor_eRm, na.rm= TRUE) # calculates the average residual   
@@ -320,33 +349,37 @@ LID_Graph(LID_eRm, cut = "Q3star", print.out = TRUE)
 ####with package mirt -----------
 
 #Residual Correlations
-LID_mirt = 
+LID_mirt = mirt::residuals(PCM_mirt, type = "Q3")
 
 #check the table
-
+#delete!----------------
 cor_mirt = LID_mirt  #to avoid overwriting the original matrix
 
 # setting values of the lower triangle and the diagonal to missing with lower.tri
-cor_mirt[lower.tri( ...)] = 
-  
-  
+cor_mirt[lower.tri(cor_mirt, diag = TRUE)] = NA
+
 # gives the pairwise correlations
 which(cor_mirt > 0.2, arr.ind = TRUE)
 
 
 #get corrplot
- #displays graphically the correlation matrix
+corrplot(LID_mirt) #displays graphically the correlation matrix
 
 #LID Plot - in form of graphical model
+LID_Graph(LID_mirt, cut = 0.2, print.out = TRUE, 
+          cex = 1.4, 
+          vertex.size = 17, vertex.label.dist = 0, 
+          vertex.color = "sandybrown")
 
 
 #calculate cut-off Q3star
-
+Mean_LID_mirt = mean(cor_mirt, na.rm= TRUE) # calculates the average residual   
 
 
 #get LID graph with cut off at Q3star
-
-
+LID_Graph(LID_mirt, cut = "Q3star", 
+          print.out = TRUE, vertex.color =  "forestgreen")
+Mean_LID_mirt + 0.2
 
 #*******************************************************************
 #Dimensionality-----------------
