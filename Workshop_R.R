@@ -191,10 +191,10 @@ plotPImap(PCM_eRm)
 
 
 #ICC curves
-plotICC(PCM_eRm, item.subset = "all")
-#wait...
-#reset graphical display with
-graphics.off()
+# plotICC(PCM_eRm, item.subset = "all")
+# #wait...
+# #reset graphical display with
+# graphics.off()
 
 ###Exercise 2------------
 ####with Package mirt----------------
@@ -228,11 +228,11 @@ wrightMap(PP_mirt[,1], Thr_mirt[,-1])
 
 #ICC curves 
 
-for(i in 1:length(Items)){
-  print(empirical_plot(dta[, Items], i, 
-          smooth = TRUE, 
-          main = Items[i]))
-}
+# for(i in 1:length(Items)){
+#   print(empirical_plot(dta[, Items], i, 
+#           smooth = TRUE, 
+#           main = Items[i]))
+# }
 
 
 
@@ -400,6 +400,33 @@ par(mar = c(2,2,2,2))
 barplot(Eigen_eRm, main="Screeplot : WHODAS 2.0", las = 2)
 
 
+
+#Plot item loadings
+
+plot(PCA_eRm$vectors[, 1], PCA_eRm$vectors[, 2], xlab = "1st component",
+     ylab = "2nd component", main = "WHDOAS PCA-Loading", col = "white", 
+     xlim = c(-0.4, 0.4), ylim = c(-0.4, 0.5) )
+
+text(PCA_eRm$vectors[, 1], PCA_eRm$vectors[, 2], Items, cex = 1)
+
+segments(0, -0.6, 0, 0.6, col = "red", lty = "dotted")
+segments(-0.6, 0, 0.6, 0, col = "orange", lty = "dotted")
+
+
+#3D Visualization - z-axis with values from PC3 - Loadings on 3rd component
+#install.packages("rgl")
+library(rgl)
+
+plot3d(PCA_eRm$vectors[, 1], PCA_eRm$vectors[, 2], PCA_eRm$vectors[, 3], xlab = "PC1",
+       ylab = "PC2", zlab = "PC3", col = "white")
+
+
+text3d(PCA_eRm$vectors[, 1], PCA_eRm$vectors[, 2], PCA_eRm$vectors[, 3],
+       texts = Items)
+
+
+
+
 ###Exercise 5------------------
 ####with Package mirt---------------
 
@@ -436,14 +463,17 @@ which(PCA_mirt$vectors[,1] > 0) # positive sign on PC1
 
 
 #spec1 is a workaround to have a Rasch model, 
-#but will be close not be totally identical to PCM_mirt 
-#in terms of estimated coefficients (because of different iteration-path) 
+#it will be close but not be totally identical to PCM_mirt 
 
 
+
+
+#model specification for 1-dimensional Rasch model
 spec1 <-  "F1 =  1-32
           START = (1-32, a1, 1.0)
           FIXED = (1-32, a1) "
 
+#model specification for 2-dimensional Rasch model
 spec2 <- "
               F1 =  1, 2,  3,  4,  5,  6, 16, 17, 18, 19, 27
               F2 = 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 25, 26, 28, 29, 30, 31, 32
@@ -655,6 +685,8 @@ cbind(Items, lordif_Agegrp$flag, lordif_Agegrp$stats)
 
 ##Multi-group approach---------------
 ###with package mirt---------------
+
+
 #This function performs likelihood-ratio DIF testing by comparing:
 #a baseline model (item parameters constrained equal across groups)
 #a model where specific parameters are freed
@@ -683,14 +715,20 @@ print(DIF_Gender_mirt)
 #same for AgeGrp
 #will not run if all response options are not found across subgroups...
 #suggestion to recode age variable
+
 DIF_MG_mirt_AgeGrp = multipleGroup(
   data = dta[, Items],
   model = 1,
   group = as.factor(dta$Age_grp),
   itemtype = "Rasch")
 
+#the 'how' to recode it could be guided by following Rasch Tree 
+
 
 ##RaschTree-------------------------
+#R-Package Vignette
+#https://cran.r-project.org/web/packages/psychotree/vignettes/raschtree.pdf
+
 #this approach bases on recursive partitioning
 #This approaches looks at item DIF but provides decision to split the sample based on 
 #DIF-variable causing the most instability.
@@ -720,6 +758,7 @@ rasch_tree = pctree(whodas ~ Gender + Age, data = dta_tree_final,
 plot(rasch_tree, "profile")
 
 #Transformation Table-----------
+#once all problems have been addressed.
 
 PP_eRm
 
@@ -731,9 +770,12 @@ TT_PP_0[, "Score_0_100"] = NA
 library(scales)
 
 TT_PP_0[, "Score_0_100"] = scales::rescale(TT_PP_0[, "Estimate"], to = c(0, 100) )
+TT_PP_0
 
 ###Exercise 6-----------
 ####with package mirt------------
+
+
 
 
 #**********************************************
