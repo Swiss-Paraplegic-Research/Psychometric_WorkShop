@@ -393,21 +393,25 @@ Eigen_eRm
 Perc_Eigen_eRm = eigen(LID_eRm)$value/sum(eigen(LID_eRm)$value)*100 
 Cum_Perc_Eigen_eRm = cumsum(Perc_Eigen_eRm)
 Eigenvalue_Tble_eRm = cbind(Eigen_eRm, Perc_Eigen_eRm, Cum_Perc_Eigen_eRm)
-Eigenvalue_Tble_eRm 
+round(Eigenvalue_Tble_eRm,2) 
 
 #First eigenvalue should ideally be below 2
+#screeplot
 par(mar = c(2,2,2,2))
 barplot(Eigen_eRm, main="Screeplot : WHODAS 2.0", las = 2)
 
 
-
 #Plot item loadings
 
-plot(PCA_eRm$vectors[, 1], PCA_eRm$vectors[, 2], xlab = "1st component",
-     ylab = "2nd component", main = "WHDOAS PCA-Loading", col = "white", 
+plot(PCA_eRm$vectors[, 1], PCA_eRm$vectors[, 2], 
+     xlab = "1st component",
+     ylab = "2nd component", 
+     main = "WHDOAS PCA-Loading", col = "white", 
      xlim = c(-0.4, 0.4), ylim = c(-0.4, 0.5) )
 
-text(PCA_eRm$vectors[, 1], PCA_eRm$vectors[, 2], Items, cex = 1)
+text(PCA_eRm$vectors[, 1], 
+     PCA_eRm$vectors[, 2], 
+     Items, cex = 1)
 
 segments(0, -0.6, 0, 0.6, col = "red", lty = "dotted")
 segments(-0.6, 0, 0.6, 0, col = "orange", lty = "dotted")
@@ -417,30 +421,62 @@ segments(-0.6, 0, 0.6, 0, col = "orange", lty = "dotted")
 #install.packages("rgl")
 library(rgl)
 
-plot3d(PCA_eRm$vectors[, 1], PCA_eRm$vectors[, 2], PCA_eRm$vectors[, 3], xlab = "PC1",
-       ylab = "PC2", zlab = "PC3", col = "white")
+plot3d(PCA_eRm$vectors[, 1], 
+       PCA_eRm$vectors[, 2], 
+       PCA_eRm$vectors[, 3], 
+       xlab = "PC1",
+       ylab = "PC2", 
+       zlab = "PC3", 
+       col = "white")
 
 
-text3d(PCA_eRm$vectors[, 1], PCA_eRm$vectors[, 2], PCA_eRm$vectors[, 3],
+text3d(PCA_eRm$vectors[, 1], 
+       PCA_eRm$vectors[, 2], 
+       PCA_eRm$vectors[, 3],
        texts = Items)
-
-
 
 
 ###Exercise 5------------------
 ####with Package mirt---------------
 
-PCA_mirt = 
-Eigen_mirt = 
-Perc_Eigen_mirt =  
-Cum_Perc_Eigen_mirt = 
-Eigenvalue_Tble_mirt = 
+
+PCA_mirt = eigen(LID_mirt)
+Eigen_mirt = PCA_mirt$values
+Perc_Eigen_mirt = eigen(LID_mirt)$value/sum(eigen(LID_mirt)$value)*100 
+Cum_Perc_Eigen_mirt = cumsum(Perc_Eigen_mirt)
+Eigenvalue_Tble_mirt = cbind(Eigen_mirt, Perc_Eigen_mirt, Cum_Perc_Eigen_mirt)
 Eigenvalue_Tble_mirt 
 
 #First eigenvalue should ideally be below 2
 par(mar = c(2,2,2,2))
-barplot(
+barplot(Eigen_mirt, main="Screeplot : WHODAS 2.0", las = 2)
 
+
+#Plot item loadings
+
+plot(PCA_mirt$vectors[, 1], PCA_mirt$vectors[, 2], xlab = "1st component",
+     ylab = "2nd component", main = "WHDOAS PCA-Loading", col = "white", 
+     xlim = c(-0.4, 0.4), ylim = c(-0.4, 0.5) )
+
+text(PCA_mirt$vectors[, 1], PCA_mirt$vectors[, 2], Items, cex = 1)
+
+segments(0, -0.6, 0, 0.6, col = "red", lty = "dotted")
+segments(-0.6, 0, 0.6, 0, col = "orange", lty = "dotted")
+
+
+#3D Visualization - z-axis with values from PC3 - Loadings on 3rd component
+#install.packages("rgl")
+library(rgl)
+
+plot3d(PCA_mirt$vectors[, 1], PCA_mirt$vectors[, 2], PCA_mirt$vectors[, 3], xlab = "PC1",
+       ylab = "PC2", zlab = "PC3", col = "white")
+
+
+text3d(PCA_mirt$vectors[, 1], PCA_mirt$vectors[, 2], PCA_mirt$vectors[, 3],
+       texts = Items)
+
+  
+  
 ##Multidimensional Rasch -----------------------
 #Dimensionality: Additional Approach I
 #not available in eRm
@@ -461,10 +497,8 @@ which(PCA_mirt$vectors[,1] > 0) # positive sign on PC1
 ##assumptions that the first (F1) and second (F2) dimensions are not independent COV = .
 
 
-
 #spec1 is a workaround to have a Rasch model, 
 #it will be close but not be totally identical to PCM_mirt 
-
 
 
 
@@ -488,9 +522,13 @@ spec2 <- "
 
 
 ## run the model with the specifications above.
-PCM_mirt_1dim =  mirt(dta[, Items], model = spec1, itemtype = "gpcm", verbose = FALSE)
+PCM_mirt_1dim =  mirt(dta[, Items], model = spec1, 
+                      itemtype = "gpcm", verbose = FALSE)
 
-PCM_mirt_2dim = mirt(dta[, Items], model = spec2, itemtype = "gpcm", verbose = FALSE)
+PCM_mirt_2dim = mirt(dta[, Items], 
+                     model = spec2, 
+                     itemtype = "gpcm", 
+                     verbose = FALSE)
 
 
 ## compare the two models 1dim against 2dim with anova
@@ -514,13 +552,15 @@ coef_mirt_1dim
 ## Anchoring the items loading negatively
 
 #First run a Rasch analysis of the negatively loading items, as usual, but with option pars = "values"
-
-mod_mirt_neg = mirt(dta[, Items[PC1_mirt_neg] ], 1, itemtype= "Rasch", pars = "values") 
+mod_mirt_neg = mirt(dta[, Items[PC1_mirt_neg] ], 1, 
+                    itemtype = "Rasch", 
+                    pars = "values") 
 
 #get the coefficient matrix and replace the values with the common item paramere estimates (line 443)
 #to fix the 4 thresholds.
 
-mod_mirt_neg[which(mod_mirt_neg[ ,"name"]=="d1"), "value"] = coef_mirt_1dim$items[PC1_mirt_neg,"d1"]
+mod_mirt_neg[which(mod_mirt_neg[ ,"name"]=="d1"), 
+             "value"] = coef_mirt_1dim$items[PC1_mirt_neg,"d1"]
 mod_mirt_neg[which(mod_mirt_neg[ ,"name"]=="d2"), "value"] = coef_mirt_1dim$items[PC1_mirt_neg,"d2"]
 mod_mirt_neg[which(mod_mirt_neg[ ,"name"]=="d3"), "value"] = coef_mirt_1dim$items[PC1_mirt_neg,"d3"]
 mod_mirt_neg[which(mod_mirt_neg[ ,"name"]=="d4"), "value"] = coef_mirt_1dim$items[PC1_mirt_neg,"d4"]
@@ -544,12 +584,15 @@ mod_mirt_pos$est = FALSE
 ## Run the anchored analysis for each dimension
 #by setting pars = to the parameter estimates fixed previously
 
-mod_PCM_neg_anchored = mirt(dta[, Items[PC1_mirt_neg]  ], 1, itemtype= "Rasch", pars = mod_mirt_neg) #anchored analysis
-mod_PCM_pos_anchored = mirt(dta[, Items[PC1_mirt_pos]  ], 1, itemtype= "Rasch", pars = mod_mirt_pos) #anchored analysis
+mod_PCM_neg_anchored = mirt(dta[, Items[PC1_mirt_neg]  ], 
+                            1, itemtype= "Rasch", 
+                            pars = mod_mirt_neg) #anchored analysis
+mod_PCM_pos_anchored = mirt(dta[, Items[PC1_mirt_pos]  ],
+                            1, itemtype= "Rasch", 
+                            pars = mod_mirt_pos) #anchored analysis
 
 
 ## Extract the Theta estimates including the SE using fscores()
-
 Theta_mirt_neg = fscores(mod_PCM_neg_anchored , full.scores.SE = TRUE)
 Theta_mirt_pos = fscores(mod_PCM_pos_anchored, full.scores.SE = TRUE)
 
@@ -557,7 +600,7 @@ N = nrow(Theta_mirt_neg)
 
 ## Making a scatterplot: thetas dim 1 versus thetas dim 2
 
-par(mar = c(4,4,4,1))
+par(mar = c(4,4,2,1))
 plot(Theta_mirt_neg[,1], Theta_mirt_pos[,1], 
      xlab = "Dim 1: PC1 negative loading",
      ylab = "Dim 2: PC1 positive loading",
@@ -566,7 +609,6 @@ plot(Theta_mirt_neg[,1], Theta_mirt_pos[,1],
      col = "darkgrey")
 
 #Trace a diagonal 
-
 segments(x0 = -4, y0 = -4, x1 = 4, y1 = 4, col = "red")
 ##Individual pairwise t-tests (formula in slides)
 
@@ -585,8 +627,18 @@ sum(T_test_abs > 2)/length(T_test_abs) * 100
 
 ##Anderson LR-test----------------
 #test for DIF at score level
-LRtest(PCM_eRm, splitcr = dta$Gender, se = TRUE)
-LRtest(PCM_eRm, splitcr = dta$Age_grp, se = TRUE)
+dta0 = dta[-nrow(dta), ]
+dta0_PCM = PCM(dta0[, Items])
+
+LR_eRm_Gender = LRtest(dta0_PCM, 
+                  splitcr = dta0$Gender, 
+                  se = TRUE)
+LR_eRm_Gender
+
+LR_eRm_AgeGrp = LRtest(dta0_PCM, 
+                  splitcr = dta0$Age_grp, 
+                  se = TRUE)
+LR_eRm_Age_Grp
 
 
 ##ANOVA---------------
@@ -648,11 +700,17 @@ DIF_partGam_AgeGrp = partgam_DIF(
 #visualize with iarm function ICC plot()
 #uses functions from psychotools for parameter estimation
 
-ICCplot(dta[, Items], itemnumber = 1:4, method = "cut", cinumber = 9, difvar = as.factor(dta$Gender), 
+ICCplot(dta[, Items], itemnumber = 1:4, 
+        method = "cut", cinumber = 9, 
+        difvar = as.factor(dta$Gender), 
         diflabels = c("M", "F"), dif = "yes")
 
-ICCplot(dta[, Items], itemnumber = 1:4, method = "cut", cinumber = 9, difvar = as.factor(dta$Age_grp), 
-        diflabels = c("(14.5,39.5]", "(39.5,59.5]", "(59.5,69.5]",  "(69.5,100]"), dif = "yes")
+ICCplot(dta[, Items], itemnumber = 11, 
+        method = "cut", cinumber = 9, 
+        difvar = as.factor(dta$Age_grp), 
+        diflabels = c("(14.5,39.5]", "(39.5,59.5]", 
+                      "(59.5,69.5]",  "(69.5,100]"),
+        dif = "yes")
 
 
 
@@ -669,7 +727,6 @@ ICCplot(dta[, Items], itemnumber = 1:4, method = "cut", cinumber = 9, difvar = a
 
 #load lordif
 library(lordif)
-
 
 lordif_Gender = lordif(dta[, Items], dta$Gender, model = "GPCM")
 names(lordif_Gender)
@@ -738,7 +795,8 @@ library(psychotree)
 dta_tree = dta
 
 #make sure that the srg.items are numeric and the pf.factors are coded as factors
-dta_tree[, Items] = apply(dta_tree[, Items], 2, as.numeric)
+dta_tree[, Items] = apply(dta_tree[, Items], 
+                          2, as.numeric)
 
 #data.frame data.srg.tree.final first only contains the DIF-variables 
 dta_tree_final = data.frame(  #
@@ -747,12 +805,13 @@ dta_tree_final = data.frame(  #
 
 #adding the item matrix $srg  to data.srg.tree.final data.frame
 dta_tree_final$whodas = array(as.matrix(dta_tree[, Items]),  #
-                                dim = c(nrow(dta_tree), length(Items)), #
-                                dimnames = list(NULL, Items))
+                          dim = c(nrow(dta_tree), length(Items)), #
+                          dimnames = list(NULL, Items))
 
 ## computes the Rasch tree
-rasch_tree = pctree(whodas ~ Gender + Age, data = dta_tree_final,
-                   minsplit = 50)
+rasch_tree = pctree(whodas ~ Gender + Age, 
+                    data = dta_tree_final,
+                    minsplit = 50)
 
 # draws the Rasch-Tree plot
 plot(rasch_tree, "profile")
@@ -775,6 +834,14 @@ TT_PP_0
 ###Exercise 6-----------
 ####with package mirt------------
 
+TT0 = round(cbind(rowSums(dta[, Items]), PP_mirt),4)
+
+TT_mirt = as.data.frame(unique(TT0[, c(1,2)]))
+TT_mirt[, "Score_0_100"] = NA
+TT_mirt[, "Score_0_100"] = scales::rescale(TT_mirt[, "F1"],
+                                           to = c(0, 100)) 
+
+TT_mirt[order(TT_mirt[,1]),]
 
 
 
